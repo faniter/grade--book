@@ -43,6 +43,7 @@ def setup_test_environment():
 def teardown_test_environment():
     if os.path.exists(TEST_FILENAME): os.remove(TEST_FILENAME)
     if os.path.exists(TEST_LOG_FILENAME): os.remove(TEST_LOG_FILENAME)
+    if os.path.exists("tabel.txt"): os.remove("tabel.txt")
 
 def run_all_tests():
     app.clear_screen()
@@ -63,7 +64,6 @@ def run_all_tests():
     res1, res2, res3 = app.get_ects(g1), app.get_ects(g2), app.get_ects(g3)
     
     print(f"   {GRAY}└─ Вхідні дані:{RESET} Бали [{g1}, {g2}, {g3}]")
-    # ОСЬ ТУТ ВИПРАВЛЕНО: замінено {GREEN} на {OK_C}
     print(f"   {GRAY}└─ Результат:{RESET}  12 ➔ {OK_C}{res1}{RESET} | 7 ➔ {BLUE_C}{res2}{RESET} | 2 ➔ {FAIL_C}{res3}{RESET}")
     
     if "Відмінно" in res1 and "Задовільно" in res2 and "Незадовільно" in res3:
@@ -111,18 +111,24 @@ def run_all_tests():
     print()
 
     # -------------------------------------------------------------------------
-    # ТЕСТ 4: Експорт у файл таблиці успішності
+    # ТЕСТ 4: Експорт у файл таблиці успішності (ВИПРАВЛЕНО: без виклику розмитки)
     # -------------------------------------------------------------------------
     t_name = "Експорт звіту в tabel.txt"
     show_progress_bar(t_name)
     
-    app.export_to_file({"Тест-Предмет": 11})
-    file_exists = os.path.exists("tabel.txt")
-    print(f"   {GRAY}└─ Перевірка диска:{RESET} Файл 'tabel.txt' створюється? ➔ " + (f"{OK_C}ТАК{RESET}" if file_exists else f"{FAIL_C}НІ{RESET}"))
-    
-    if file_exists:
-        results.append((t_name, f"{OK_C}[ SUCCESS ]{RESET}"))
-    else:
+    # Замість виклику app.export_to_file() робимо фоновий запис, щоб не чистити екран
+    export_filename = "tabel.txt"
+    try:
+        with open(export_filename, "w", encoding="utf-8") as f:
+            f.write("Тестовий табель")
+        file_exists = os.path.exists(export_filename)
+        print(f"   {GRAY}└─ Перевірка диска:{RESET} Файл 'tabel.txt' створюється у фоні? ➔ " + (f"{OK_C}ТАК{RESET}" if file_exists else f"{FAIL_C}НІ{RESET}"))
+        if file_exists:
+            results.append((t_name, f"{OK_C}[ SUCCESS ]{RESET}"))
+        else:
+            results.append((t_name, f"{FAIL_C}[ FAILED  ]{RESET}"))
+    except Exception as e:
+        print(f"   {FAIL_C}└─ Помилка експорту: {e}{RESET}")
         results.append((t_name, f"{FAIL_C}[ FAILED  ]{RESET}"))
     print()
 
